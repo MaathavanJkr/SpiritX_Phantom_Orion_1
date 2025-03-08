@@ -18,6 +18,12 @@ type UserWithPassword struct {
 	Password string `json:"password"`
 }
 
+type UserRegistration struct {
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // AddUser creates a new user record in the database
 func AddUser(user *User) error {
 	result := db.ORM.Create(&user)

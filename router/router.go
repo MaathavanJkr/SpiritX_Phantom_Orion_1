@@ -18,6 +18,7 @@ type Route struct {
 var routes = []Route{
 	//Auth routes
 	{Path: "/auth/login", Security: "Public", Method: "POST", Handler: handlers.UserLogin},
+	{Path: "/auth/register", Security: "Public", Method: "POST", Handler: handlers.UserRegister},
 
 	//user routes
 	{Path: "/user/add", Security: "Public", Method: "POST", Handler: handlers.AddUser},
