@@ -6,6 +6,7 @@ import (
 	"go-orm-template/auth"
 	"go-orm-template/models"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,25 +14,36 @@ import (
 func UserLogin(c *gin.Context) {
 	var user *models.UserWithPassword
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
 		return
 	}
 
 	userInDB, err := models.GetUserByUsername(user.Username)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Username"})
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "Authentication failed",
+			"details": "Incorrect username",
+		})
 		return
 	}
 
 	if !auth.VerifyPassword(user.Password, userInDB.Password) {
-
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "Authentication failed",
+			"details": "Wrong password",
+		})
 		return
 	}
 
 	token, err := auth.GenerateJWT(user.Username, "user")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Internal server error",
+			"details": "Could not generate token",
+		})
 		return
 	}
 
@@ -45,13 +57,37 @@ func UserLogin(c *gin.Context) {
 func UserRegister(c *gin.Context) {
 	var userReg models.UserRegistration
 	if err := c.ShouldBindJSON(&userReg); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request format",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate username characters
+	if err := models.ValidateUsername(userReg.Username); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid username",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate password characters
+	if err := models.ValidatePassword(userReg.Password); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid password",
+			"details": err.Error(),
+		})
 		return
 	}
 
 	hashedPassword, err := auth.HashPassword(userReg.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Internal server error",
+			"details": err.Error(),
+		})
 		return
 	}
 
@@ -68,7 +104,19 @@ func UserRegister(c *gin.Context) {
 
 	// Create the user in database
 	if err := models.AddUser(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		errorMsg := "Internal server error"
+		if strings.Contains(err.Error(), "duplicate") {
+			errorMsg = "Registration failed"
+			c.JSON(http.StatusConflict, gin.H{
+				"error":   errorMsg,
+				"details": "Username already exists",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   errorMsg,
+			"details": err.Error(),
+		})
 		return
 	}
 

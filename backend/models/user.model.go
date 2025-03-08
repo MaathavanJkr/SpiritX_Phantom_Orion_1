@@ -2,7 +2,9 @@
 package models
 
 import (
+	"fmt"
 	"go-orm-template/db"
+	"strings"
 )
 
 type User struct {
@@ -22,6 +24,46 @@ type UserRegistration struct {
 	Name     string `json:"name"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+// ValidateUsername checks if a username meets the minimum requirements
+func ValidateUsername(username string) error {
+	// Check minimum length
+	if len(username) < 8 {
+		return fmt.Errorf("username must be at least 8 characters long")
+	}
+
+	// Check for invalid characters
+	if strings.ContainsAny(username, "!@#$%^&*()_+-=[]{};':\",./<>?`~ ") {
+		return fmt.Errorf("username contains invalid characters")
+	}
+
+	// Check if username already exists
+	_, err := GetUserByUsername(username)
+	if err == nil {
+		return fmt.Errorf("username already exists")
+	}
+
+	return nil
+}
+
+// ValidatePassword checks if a password meets the minimum requirements
+func ValidatePassword(password string) error {
+	// Check minimum length
+	if len(password) < 8 {
+		return fmt.Errorf("password must be at least 8 characters long")
+	}
+
+	// Check for required character types
+	hasLower := strings.ContainsAny(password, "abcdefghijklmnopqrstuvwxyz")
+	hasUpper := strings.ContainsAny(password, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	hasSpecial := strings.ContainsAny(password, "!@#$%^&*()_+-=[]{};':\",./<>?`~")
+
+	if !hasLower || !hasUpper || !hasSpecial {
+		return fmt.Errorf("password must contain at least one lowercase letter, one uppercase letter, and one special character")
+	}
+
+	return nil
 }
 
 // AddUser creates a new user record in the database
