@@ -1,5 +1,5 @@
 "use client"
-
+import { Progress } from "@/components/ui/progress"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -11,10 +11,26 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { login, register } from "@/services/authService"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+
+const getPasswordStrength = (password: string) => {
+  let score = 0;
+  if (password.length >= 8) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[a-z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+  if (score === 5) return { label: "Strong", textColor: "text-green-500", value: 100 };
+  if (score >= 3) return { label: "Medium", textColor: "text-yellow-500", value: 60 };
+  return { label: "Weak", textColor: "text-red-500", value: 30 };
+}
 
 // Login form schema
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  username: z.string().min(8, { message: "Username must be at least 8 characters" }),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters" })
@@ -27,8 +43,7 @@ const loginSchema = z.object({
 // Sign up form schema
 const signUpSchema = z
   .object({
-    name: z.string().min(8, { message: "Username must be at least 8 characters" }),
-    email: z.string().email({ message: "Please enter a valid email address" }),
+    username: z.string().min(8, { message: "Username must be at least 8 characters" }),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" })
@@ -52,47 +67,73 @@ export default function AuthForm() {
   const [showLoginPassword, setShowLoginPassword] = useState(false)
   const [showSignUpPassword, setShowSignUpPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginSuccess, setLoginSuccess] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
+  const router = useRouter();
+  const [passwordStrength, setPasswordStrength] = useState({ label: "", textColor: "", value: 0 });
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   })
-
   // Sign up form
   const signUpForm = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      name: "",
-      email: "",
+      username: "",
       password: "",
       confirmPassword: "",
     },
   })
+  useEffect(() => {
+    setPasswordStrength(getPasswordStrength(signUpForm.watch("password")));
+  }, [signUpForm.watch("password")]);
 
-  // Handle login submission
-  function onLoginSubmit(values: LoginFormValues) {
-    setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log(values)
-      setIsLoading(false)
-    }, 1000)
+  async function onLoginSubmit(values: LoginFormValues) {
+    setIsLoading(true);
+    setLoginError(null);
+    setLoginSuccess(null);
+  
+    try {
+      const response = await login(values.username, values.password);
+      localStorage.setItem("auth_token", response.token);
+      localStorage.setItem("user_role", response.user.role);
+      localStorage.setItem("user_name", response.user.username);
+      localStorage.setItem("user_id", response.user.id.toString());
+      // setLoginSuccess("Login successful!");
+      router.push("/");
+    } catch (error) {
+      setLoginError("Invalid username or password. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  // Handle sign up submission
-  function onSignUpSubmit(values: SignUpFormValues) {
-    setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log(values)
-      setIsLoading(false)
-    }, 1000)
+  async function onSignUpSubmit(values: SignUpFormValues) {
+    setIsLoading(true);
+    setRegisterError(null);
+    setRegisterSuccess(null);
+    try {
+      const response = await register(values.username, values.password);
+      setTimeout(() => {
+        setActiveTab("login");
+        setRegisterSuccess(null); 
+        loginForm.reset(); 
+        signUpForm.reset(); 
+      }, 2000);      
+      alert("Registration successful! Redirecting to login...");
+      setRegisterSuccess("Register successful!");
+    } catch (error) {
+      setRegisterError(`${error || "An error occurred during registration."}`);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -114,8 +155,8 @@ export default function AuthForm() {
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                 <FormField
-                    control={signUpForm.control}
-                    name="name"
+                    control={loginForm.control}
+                    name="username"                    
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>User Name</FormLabel>
@@ -151,6 +192,8 @@ export default function AuthForm() {
                       </FormItem>
                     )}
                   />
+                  {loginError && (<div className="text-red-500 text-sm font-medium text-center">{loginError}</div>)}
+                  {loginSuccess && (<div className="text-green-500 text-sm font-medium text-center">{loginSuccess}</div>)}
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (
                       <>
@@ -184,7 +227,7 @@ export default function AuthForm() {
                 <form onSubmit={signUpForm.handleSubmit(onSignUpSubmit)} className="space-y-4">
                   <FormField
                     control={signUpForm.control}
-                    name="name"
+                    name="username"                   
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>User Name</FormLabel>
@@ -234,6 +277,10 @@ export default function AuthForm() {
                       </FormItem>
                     )}
                   />
+                {/* Password Strength Indicator */}
+                <div className="mt-2">
+                  <p className={`text-sm font-medium ${passwordStrength.textColor} mt-1`}>{passwordStrength.label}</p>
+                </div>
                   <FormField
                     control={signUpForm.control}
                     name="confirmPassword"
@@ -259,6 +306,8 @@ export default function AuthForm() {
                       </FormItem>
                     )}
                   />
+                  {registerError && (<div className="text-red-500 text-sm font-medium text-center">{registerError}</div>)}
+                  {registerSuccess && (<div className="text-green-500 text-sm font-medium text-center">{registerSuccess}</div>)}
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (
                       <>
