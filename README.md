@@ -1,55 +1,50 @@
-# User Authentication API
+# SecureConnect
+## Usage
+To start using SecureConnect, follow these steps:
 
-This is a RESTful API for user authentication and management.
+### Backend
+1. **Set up environment variables:**
+    Create a `.env` file in the root directory and add the necessary environment variables. Refer to `.env.example` for the required variables.
 
-## Prerequisites
+2. **Install Go:**
+    Ensure Go is installed on your system. If not, download and install it from [golang.org](https://golang.org/).
 
-- Docker
-- Docker Compose
+3. **Install the required dependencies:**
+    ```bash
+    go mod download
+    ```
 
-## Getting Started
+4. **Run the backend application:**
+    ```bash
+    go run .
+    ```
+5. **Access the API:**
+    The API will be running on `http://localhost:8080`.
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   ```
+### Frontend User
 
-2. Navigate to the project directory:
-   ```bash
-   cd <project-directory>
-   ```
 
-3. Start the application using Docker Compose:
-   ```bash
-   docker-compose up
-   ```
+1. **Navigate to the fron4. **Access the application:**
+    Open your web browser and navigate to `http://localhost:8080`.tend directory:**
+    ```bash
+    cd frontend
+    ```
+2. **Set up environment variables:**
+    Create a `.env` file in the root directory and add the necessary environment variables. 
 
-4. The API will be available at `http://localhost:8080`
+    ```plaintext
+    NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+    ```
 
-## API Endpoints
+3. **Install React:**
+    ```bash
+    npm install
+    ```
 
-### Authentication
-- `POST /login` - User login
-- `POST /register` - User registration
+4. **Run the frontend application:**
+    ```bash
+    npm run dev
+    ```
 
-### User Management
-- `POST /users` - Create a new user
-- `GET /users` - Get all users
-- `GET /users/:id` - Get user by ID
-
-## Environment Variables
-
-The following environment variables can be configured in the `.env` file:
-
-- `DB_HOST` - Database host
-- `DB_PORT` - Database port
-- `DB_USER` - Database username
-- `DB_PASSWORD` - Database password
-- `DB_NAME` - Database name
-- `JWT_SECRET` - Secret key for JWT token generation
-
-## Testing the API
-
-You can use tools like Postman or cURL to test the API endpoints.
-
-Example registration request:
+5. **Access the application:**
+    Open your web browser and navigate to `http://localhost:3000` to access the user interface.
