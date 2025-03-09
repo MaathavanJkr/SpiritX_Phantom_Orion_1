@@ -1,55 +1,74 @@
-# User Authentication API
+# Spirit11
+## Usage
+To start using Spirit11, follow these steps:
 
-This is a RESTful API for user authentication and management.
 
-## Prerequisites
+### Backend
+1. **Set up environment variables:**
+    Create a `.env` file in the root directory and add the necessary environment variables. Refer to `.env.example` for the required variables.
 
-- Docker
-- Docker Compose
+2. **Install Go:**
+    Ensure Go is installed on your system. If not, download and install it from [golang.org](https://golang.org/).
 
-## Getting Started
+3. **Install the required dependencies:**
+    ```bash
+    go mod download
+    ```
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   ```
+4. **Run the backend application:**
+    ```bash
+    go run .
+    ```
 
-2. Navigate to the project directory:
-   ```bash
-   cd <project-directory>
-   ```
+5. 
 
-3. Start the application using Docker Compose:
-   ```bash
-   docker-compose up
-   ```
+### Frontend User
 
-4. The API will be available at `http://localhost:8080`
 
-## API Endpoints
+1. **Navigate to the frontend directory:**
+    ```bash
+    cd frontend
+    ```
 
-### Authentication
-- `POST /login` - User login
-- `POST /register` - User registration
+2. **Install React:**
+    ```bash
+    npm install
+    ```
 
-### User Management
-- `POST /users` - Create a new user
-- `GET /users` - Get all users
-- `GET /users/:id` - Get user by ID
+3. **Run the frontend application:**
+    ```bash
+    npm run dev
+    ```
 
-## Environment Variables
+### Frontend Admin
+1. **Navigate to the admin directory:**
+    ```bash
+    cd admin
+    ```
 
-The following environment variables can be configured in the `.env` file:
+2. **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-- `DB_HOST` - Database host
-- `DB_PORT` - Database port
-- `DB_USER` - Database username
-- `DB_PASSWORD` - Database password
-- `DB_NAME` - Database name
-- `JWT_SECRET` - Secret key for JWT token generation
+3. **Run the admin frontend application:**
+    ```bash
+    npm run dev
+    ```
 
-## Testing the API
 
-You can use tools like Postman or cURL to test the API endpoints.
+4. **Access the application:**
+    Open your web browser and navigate to `http://localhost:8080`.
 
-Example registration request:
+## Contributing
+Contributions are welcome! Please follow these steps to contribute:
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature/your-feature`).
+3. Make your changes.
+4. Commit your changes (`git commit -m 'Add some feature'`).
+5. Push to the branch (`git push origin feature/your-feature`).
+6. Open a pull request.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
